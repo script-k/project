@@ -1,0 +1,108 @@
+import dotenv from "dotenv";
+import express from "express";
+import connection from "./db.js";
+import sql from "mssql";
+import cors from "cors";
+
+dotenv.config();
+const appPort = process.env.APP_PORT;
+
+const app = express();
+// Middlewares para permitir CORS y parsear JSON
+app.use(cors());
+app.use(express.json());
+
+// Métodos existentes GET...
+
+// POST para crear nueva categoría
+app.post('/categorias', async (req, res) => {
+    try {
+        const { nombre } = req.body;
+        
+        if (!nombre) {
+            return res.status(400).json({ error: "El nombre es requerido" });
+        }
+
+        const request = new sql.Request();
+        request.input('nombre', sql.VarChar, nombre);
+        
+        const resultado = await request.query(
+            'INSERT INTO categorias (nombre) OUTPUT INSERTED.categoria_id, INSERTED.nombre VALUES (@nombre)'
+        );
+
+        res.status(201).json({
+            message: "Categoría creada",
+            data: resultado.recordset[0]
+        });
+
+    } catch (error) {
+        res.status(500).json({ error: "Error al crear categoría" });
+    }
+});
+
+// PUT para actualizar categoría
+app.put('/categorias/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nombre } = req.body;
+
+        if (!nombre) {
+            return res.status(400).json({ error: "El nombre es requerido" });
+        }
+
+        const request = new sql.Request();
+        request.input('categoria_id', sql.Int, id);
+        request.input('nombre', sql.VarChar, nombre);
+
+        const resultado = await request.query(
+            `UPDATE categorias 
+            SET nombre = @nombre 
+            WHERE categoria_id = @categoria_id
+            IF @@ROWCOUNT = 0
+                THROW 51000, 'Categoría no encontrada', 1`
+        );
+
+        res.status(200).json({
+            message: "Categoría actualizada",
+            data: { categoria_id: id, nombre }
+        });
+
+    } catch (error) {
+        if (error.message.includes('Categoría no encontrada')) {
+            return res.status(404).json({ error: "Categoría no encontrada" });
+        }
+        res.status(500).json({ error: "Error al actualizar categoría" });
+    }
+});
+
+// DELETE para eliminar categoría
+app.delete('/categorias/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const request = new sql.Request();
+        request.input('categoria_id', sql.Int, id);
+
+        const resultado = await request.query(
+            `DELETE FROM categorias 
+            WHERE categoria_id = @categoria_id
+            IF @@ROWCOUNT = 0
+                THROW 51000, 'Categoría no encontrada', 1`
+        );
+
+        res.status(204).end();
+
+    } catch (error) {
+        if (error.message.includes('Categoría no encontrada')) {
+            return res.status(404).json({ error: "Categoría no encontrada" });
+        }
+        if (error.message.includes('REFERENCE constraint')) {
+            return res.status(409).json({ error: "No se puede eliminar, existe productos asociados" });
+        }
+        res.status(500).json({ error: "Error al eliminar categoría" });
+    }
+});
+
+app.listen(appPort, () => {
+    console.log(`Server On: http://localhost:${appPort}`);
+});
