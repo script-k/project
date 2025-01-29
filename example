@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+<body>
+    <div class="container text-center pt-5 mt-5">
+        <div class="row">
+            <div class="col col-lg-4 col-md-4">
+                <input type="text" class="form form-control" id="inputTarea" placeholder="Ingresa la nueva tarea...">
+            </div>
+            <div class="col col-md-2 col-lg-2">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary d-block btn-block" id="btnAgregar">
+                        Agregar
+                    </button>
+                </div>
+            </div>
+            <div class="col col-md-6 col-lg-6">
+                <table class="table table-fixed table-sm table-striped" id="tablaTareas">
+                    <thead>
+                        <tr>
+                            <th>No.</th>
+                            <th>Tarea</th>
+                            <th>Accion</th>
+                        </tr>
+                    </thead>
+                    <tbody id="cuerpoTabla">
+                        <!-- Las filas de las tareas se agregarán aquí dinámicamente -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Contador para el número de tareas
+        let contadorTareas = 1;
+
+        // Función para agregar una tarea a la tabla
+        function agregarTarea() {
+            // Obtener el valor del input
+            const inputTarea = document.getElementById('inputTarea').value;
+
+            // Validar que el input no esté vacío
+            if (inputTarea.trim() === '') {
+                alert('Por favor, ingresa una tarea válida.');
+                return;
+            }
+
+            // Obtener el cuerpo de la tabla
+            const cuerpoTabla = document.getElementById('cuerpoTabla');
+
+            // Crear una nueva fila
+            const nuevaFila = document.createElement('tr');
+
+            // Agregar el número de tarea
+            const celdaNumero = document.createElement('td');
+            celdaNumero.textContent = contadorTareas;
+            nuevaFila.appendChild(celdaNumero);
+
+            // Agregar la tarea
+            const celdaTarea = document.createElement('td');
+            celdaTarea.textContent = inputTarea;
+            nuevaFila.appendChild(celdaTarea);
+
+            // Agregar los botones de acción
+            const celdaAccion = document.createElement('td');
+            const botonEditar = document.createElement('button');
+            botonEditar.className = 'btn btn-warning btn-sm';
+            botonEditar.innerHTML = '<b>O</b>';
+            botonEditar.onclick = function () {
+                editarTarea(celdaTarea);
+            };
+
+            const botonEliminar = document.createElement('button');
+            botonEliminar.className = 'btn btn-danger btn-sm';
+            botonEliminar.innerHTML = '<b>X</b>';
+            botonEliminar.onclick = function () {
+                eliminarTarea(nuevaFila);
+            };
+
+            celdaAccion.appendChild(botonEditar);
+            celdaAccion.appendChild(botonEliminar);
+            nuevaFila.appendChild(celdaAccion);
+
+            // Agregar la fila a la tabla
+            cuerpoTabla.appendChild(nuevaFila);
+
+            // Incrementar el contador de tareas
+            contadorTareas++;
+
+            // Limpiar el input
+            document.getElementById('inputTarea').value = '';
+        }
+
+        // Función para editar una tarea
+        function editarTarea(celdaTarea) {
+            const nuevoTexto = prompt('Editar tarea:', celdaTarea.textContent);
+            if (nuevoTexto !== null && nuevoTexto.trim() !== '') {
+                celdaTarea.textContent = nuevoTexto;
+            }
+        }
+
+        // Función para eliminar una tarea
+        function eliminarTarea(fila) {
+            if (confirm('¿Estás seguro de eliminar esta tarea?')) {
+                fila.remove();
+            }
+        }
+
+        // Asignar la función agregarTarea al botón
+        document.getElementById('btnAgregar').addEventListener('click', agregarTarea);
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+</body>
+</html>
